@@ -1,0 +1,210 @@
+//Driver.cs
+
+using System;
+
+namespace MetalappsAutomation
+{
+    public class Driver
+    {
+        static void Main(string[] args)
+        {
+            SalesDetails obj = new SalesDetails();
+            Console.WriteLine("Enter sales id ");
+            obj.SalesId = int.Parse(Console.ReadLine());
+
+            Console.WriteLine("Enter customer name ");
+            obj.CustomerName = Console.ReadLine();
+
+            Console.WriteLine("Enter the number of units sold");
+            obj.NoOfUnits = int.Parse(Console.ReadLine());
+            
+            
+            
+                
+            
+
+            Metalapps app = new Metalapps();
+            app.CalculateNetAmount(obj);
+            app.AddSalesDetails(obj);
+
+            Console.WriteLine("Sales Bill ");
+            Console.WriteLine("***********");
+            Console.WriteLine("Sales Id : "+obj.SalesId);
+            Console.WriteLine("Customer Name : "+obj.CustomerName);
+            Console.WriteLine("Number of Units Sold : "+obj.NoOfUnits);
+            Console.WriteLine("Net Amount : "+obj.NetAmount);
+        }
+    }
+}
+
+
+
+//SalesDetails.cs
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MetalappsAutomation    //DO NOT change the namespace name
+{
+    public class SalesDetails   //DO NOT change the class name
+    {
+        //Implement the fields and properties as per description
+        private int salesId;
+        private string customerName;
+        private int noOfUnits;
+        private double netAmount;
+
+
+        public int SalesId {
+            get
+            {
+                return salesId;
+            }
+            set
+            {
+                salesId = value;
+            }
+        }
+        
+        public string CustomerName
+        {
+            get
+            {
+                return customerName;
+            }
+            set
+            {
+                customerName = value;
+            }
+        }
+        public int NoOfUnits
+        {
+            get
+            {
+                return noOfUnits;
+            }
+            set
+            {
+                
+                noOfUnits = value;
+                if (noOfUnits <= 5)
+                    throw new ArgumentOutOfRangeException("No Sales for units below 5");
+                
+            }
+        }
+        public double NetAmount
+        {
+            get
+            {
+                return netAmount;
+            }
+            set
+            {
+                netAmount = value;
+            }
+        }
+    }
+}
+
+
+//DBHandler.cs
+
+using System;
+using System.Configuration;
+using System.Data.SqlClient;
+
+namespace MetalappsAutomation  //DO NOT change the namespace name
+{
+    public class DBHandler  //DO NOT change the class name
+    {
+        //Implement the methods as per the description
+
+        public SqlConnection GetConnection()
+        {
+            string con = ConfigurationManager.ConnectionStrings["SqlCon"].ConnectionString;
+
+            SqlConnection sqlConnection = new SqlConnection(con);
+
+            return sqlConnection;
+        }
+    }
+}
+
+//Metalapps.cs
+
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MetalappsAutomation //DO NOT change the namespace name
+{
+ public class Metalapps            //DO NOT change the class name
+ {
+  //Implement the property as per the description
+  //Implement the methods as per the description
+  
+  public SqlConnection SqlCon{ get; set;}
+  
+  DBHandler db = new DBHandler();
+  
+  public void AddSalesDetails(SalesDetails sd)
+  {
+   SqlCon=db.GetConnection();
+   
+   SqlCon.Open();
+   
+   SqlCommand cmd = new SqlCommand("insert into SalesDetails values(@Sales_id,@Customer_name,@Noof_units,@Net_amount)",SqlCon);
+   cmd.Parameters.AddWithValue("@Sales_id",sd.SalesId);
+   cmd.Parameters.AddWithValue("@Customer_name", sd.CustomerName);
+   cmd.Parameters.AddWithValue("@Noof_units", sd.NoOfUnits);
+   cmd.Parameters.AddWithValue("@Net_amount", sd.NetAmount);
+   cmd.ExecuteNonQuery();
+
+
+   SqlCon.Close();
+  }
+
+  public void CalculateNetAmount(SalesDetails details)
+  {
+   int units = details.NoOfUnits;
+   
+
+   if (units <= 5)
+    details.NetAmount = 75350 * units;
+   else if (units > 5 && units <= 10)
+    details.NetAmount = 75350 * units * 0.98;
+   else if(units> 10 && units<= 15)
+    details.NetAmount = 75350 * units * 0.95;
+   else if (units> 15 && units<= 20)
+    details.NetAmount = 75350 * units * 0.92;
+   else if (units >20)
+    details.NetAmount = 75350 * units * 0.90;
+            
+            //AddSalesDetails(details);
+  }
+  
+  
+ }
+}
+
+
+//App.config
+
+<!-- THIS IS FOR REFERENCE ONLY. YOU ARE NOT REQUIRED TO MAKE ANY CHANGES HERE -->
+
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+    <startup> 
+        <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.6.1" />
+    </startup>
+  <connectionStrings>
+    <add name="SqlCon" connectionString="server=localhost;database=SalesDatabase;uid=XXXXX;password=XXXXXX;"/>
+  </connectionStrings>
+</configuration>
